@@ -20,8 +20,28 @@ from tests.bdd.pages.live_simulation_page import LiveSimulationPage
 from tests.bdd.pages.tournament_page import TournamentPage
 
 
+def _probe_candidate_url(current_url: str, env_keys: tuple[str, ...], candidates: tuple[str, ...]) -> str:
+    """Resolve reachable local service URL at runtime when no explicit environment override is set."""
+    if any(os.environ.get(k) for k in env_keys):
+        return current_url
+    for candidate in (current_url, *candidates):
+        try:
+            resp = requests.get(f"{candidate.rstrip('/')}/", timeout=2)
+            if resp.status_code == 200:
+                return candidate.rstrip("/")
+        except requests.RequestException:
+            continue
+    return current_url
+
+
 def _verify_service_health() -> None:
     """Confirm API and Web frontend endpoints respond before launching browser scenarios."""
+    config.API_BASE_URL = _probe_candidate_url(
+        config.API_BASE_URL, ("E2E_API_BASE_URL", "GSP_API_URL"), config.API_URL_CANDIDATES
+    )
+    config.WEB_BASE_URL = _probe_candidate_url(
+        config.WEB_BASE_URL, ("E2E_WEB_BASE_URL", "GSP_WEB_URL"), config.WEB_URL_CANDIDATES
+    )
     for name, url in [("API", f"{config.API_BASE_URL}/"), ("Web UI", f"{config.WEB_BASE_URL}/")]:
         resp = requests.get(url, timeout=5)
         if resp.status_code != 200:
@@ -50,7 +70,8 @@ def before_all(context) -> None:
     _verify_service_health()
 
     chrome_options = Options()
-    chrome_options.binary_location = config.CHROMIUM_BINARY
+    if config.CHROMIUM_BINARY:
+        chrome_options.binary_location = config.CHROMIUM_BINARY
     chrome_options.page_load_strategy = "eager"
     if config.HEADLESS:
         chrome_options.add_argument("--headless=new")
@@ -63,8 +84,11 @@ def before_all(context) -> None:
     chrome_options.add_argument(f"--window-size={config.WINDOW_WIDTH},{config.WINDOW_HEIGHT}")
     chrome_options.set_capability("goog:loggingPrefs", {"browser": "ALL"})
 
-    service = Service(executable_path=config.CHROMEDRIVER_BINARY)
-    context.driver = webdriver.Chrome(service=service, options=chrome_options)
+    if config.CHROMEDRIVER_BINARY:
+        service = Service(executable_path=config.CHROMEDRIVER_BINARY)
+        context.driver = webdriver.Chrome(service=service, options=chrome_options)
+    else:
+        context.driver = webdriver.Chrome(options=chrome_options)
     context.arena_page = ArenaSelectionPage(context.driver)
     context.live_page = LiveSimulationPage(context.driver)
     context.tournament_page = TournamentPage(context.driver)

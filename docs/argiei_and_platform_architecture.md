@@ -39,10 +39,11 @@ Agents interact with the Argiei Platform using the `platform_mcp` CLI (`platform
 
 ```mermaid
 flowchart LR
-    subgraph Frontend["React + TypeScript SPA (src/ui/web)"]
+    subgraph Frontend["React + TypeScript SPA (ui/)"]
         Landing["Landing Catalog (#/)"]
         LiveView["Live Simulation View"]
         TourneyView["Tournament Dashboard"]
+        CGPanel["CodinGame Panel (CodinGamePanel.tsx)"]
         Viewport["2D/SVG & 3D Three.js Viewport"]
     end
 
@@ -51,40 +52,48 @@ flowchart LR
         BotLoader["Dynamic Bot Loader (bot_loader.py)"]
         TourneyMgr["TournamentManager & PrioritySemaphore (tournament.py)"]
         Matchmaker["Swiss Pairing Engine (matchmaking.py)"]
-        Bundler["Single-File Bot Bundler (bundler.py)"]
+        Bundler["Single-File & Dual-Seat Bundler (bot_bundler.py)"]
+        CGClient["CodinGame REST Client (codingame_client.py)"]
     end
 
     subgraph Engine["Game Engines & Worker Pool (src/core & src/games)"]
         WorkerPool["ProcessPoolExecutor (simulation_worker.py)"]
-        Exotec["Exotec / Winter Challenge 2026"]
-        BTK["Back Track King"]
-        FC2020["Fall Challenge 2020"]
+        Exotec["Exotec (exotec)"]
+        GITC["Ghost in the Cell (ghost_in_the_cell)"]
+        TF["Troll Farm (troll_farm)"]
+        BTK["Back Track King (back_track_king)"]
+        TAC["TryAngle-Catch (tryangle_catch: bot_v1..bot_v26)"]
     end
 
     Landing --> MainAPI
     LiveView --> MainAPI
     LiveView --> Viewport
     TourneyView --> MainAPI
+    CGPanel --> MainAPI
     MainAPI --> BotLoader
     MainAPI --> TourneyMgr
     MainAPI --> Bundler
+    MainAPI --> CGClient
+    CGClient --> Bundler
     TourneyMgr --> Matchmaker
     MainAPI --> WorkerPool
     TourneyMgr --> WorkerPool
     WorkerPool --> Exotec
+    WorkerPool --> GITC
+    WorkerPool --> TF
     WorkerPool --> BTK
-    WorkerPool --> FC2020
+    WorkerPool --> TAC
 ```
 
 ### 2.1 Backend Subsystems (`src/ui/` & `src/core/`)
 
 1. **FastAPI Control Plane (`src/ui/main.py`)**:
-   - `GET /`: Lists registered games (`exotec`, `winter_challenge_2026_exotec`, `back_track_king`, `fall_challenge_2020`) and league tiers (`Legend`, `Gold`, `Silver`, `Bronze`, `Wood`).
+   - `GET /`: Lists registered games (`exotec`, `ghost_in_the_cell`, `troll_farm`, `back_track_king`, `tryangle_catch`) and league tiers (`Legend`, `Gold`, `Silver`, `Bronze`, `Wood`).
    - `GET /metadata?game_id=<id>`: Merges common leaderboard columns (`Rank`, `League`, `Bot Name`, `Dominance`, `Rating (Elo)`, `Perf`, `Win%`, `Loss%`, `Draw%`, `T1 Time`, `Avg Time`, `W-D-L`, `Total #`) with game-specific telemetry columns (e.g., `K% (F|K|S)` and `Bat%`).
-   - `GET /bots?game_id=<id>`: Dynamically discovers bot classes under `src/games/<game_id>/bots/`, deduplicates backward-compatible class aliases by canonical `filename`, and formats versioned display labels (`v1`–`v50`).
+   - `GET /bots?game_id=<id>`: Dynamically discovers bot classes under `src/games/<game_id>/bots/`, deduplicates backward-compatible class aliases by canonical `filename`, and formats versioned display labels (`v1`–`v26` for `tryangle_catch`, `v1`–`v52` for `back_track_king`).
    - `POST /run-simulation`: Runs a high-priority interactive match (or parses a `.e2e` replay log) and returns turn-by-turn state history for the visualizer.
    - `POST /batch-simulation`, `GET /tournament-stats`, `POST /stop-tournament`, `POST /reset-tournament`: Controls background Swiss tournament sessions and streams live Elo/Dominance standings.
-   - `GET /bundle/{bot_filename}`: Bundles multi-file Python bot code and its transitive `src.*` imports into a single standalone submission script via `src/utils/bundler.py`.
+   - `GET /bundle/{bot_filename}`: Bundles multi-file Python bot code and its transitive `src.*` imports into a single standalone submission script via `src/ui/bot_bundler.py` (`bundle_specific` and `bundle_match`), applying AST docstring/annotation stripping (preserving class-body `@dataclass` field annotations), Python 3.12+ f-string-safe token whitespace minification (`> 95,000` chars), and `zlib`+`base85` fallback (`> 99,000` chars) to stay strictly within CodinGame's `100,000`-character limit.
 
 2. **Concurrency & Priority Scheduling (`src/ui/tournament.py` & `src/ui/simulation_worker.py`)**:
    - `PrioritySemaphore` ensures interactive `POST /run-simulation` requests (`priority=0`) preempt background batch tournament matches (`priority=1`) waiting for `ProcessPoolExecutor` slots.
@@ -93,8 +102,8 @@ flowchart LR
 3. **Swiss Matchmaking (`src/ui/matchmaking.py`)**:
    - `generate_swiss_pairings` groups participating bots by current tournament score, prioritizes bots with the fewest historical games, assigns odd-pool byes to the lowest-ranked unbyed bot, and applies a `-1000` rematch penalty (`REMATCH_PENALTY_SCORE`) to prevent repeat pairings within a session.
 
-### 2.2 Frontend Visualizer (`src/ui/web/`)
+### 2.2 Frontend Visualizer (`ui/`)
 
-- **Hash-Routed SPA (`src/App.tsx`)**: Supports direct navigation to `#/` (Arena selection catalog) or `#/<game_id>` (Arena workspace with **Live View** and **Tournament** tabs).
-- **Interactive Viewport (`src/components/Viewport.tsx` & `Scene3D.tsx`)**: Renders turn-by-turn board states, bot body segments, power sources, and trajectories with frame-accurate playback controls (`Play`/`Pause`, step forward/backward, speed multiplier, and timeline scrubber).
-- **Tournament Analytics (`src/App.tsx`)**: Displays real-time Elo/Dominance progression charts (Recharts), an Outcome Profile stacked bar chart, a Head-to-Head (`H2H`) win-rate matrix, and a sortable leaderboard table.
+- **Hash-Routed SPA (`ui/src/App.tsx`)**: Supports direct navigation to `#/` (Arena selection catalog) or `#/<game_id>` (Arena workspace with **Live View**, **Tournament**, and **CodinGame** tabs).
+- **Interactive Viewport (`ui/src/components/Viewport.tsx` & `Scene3D.tsx`)**: Renders turn-by-turn board states, bot body segments, power sources, and trajectories with frame-accurate playback controls (`Play`/`Pause`, step forward/backward, speed multiplier, and timeline scrubber).
+- **Tournament Analytics (`ui/src/App.tsx` & `ui/src/components/Leaderboard.tsx`)**: Displays real-time Elo/Dominance progression charts (Recharts), an Outcome Profile stacked bar chart, a Head-to-Head (`H2H`) win-rate matrix, and a sortable leaderboard table.

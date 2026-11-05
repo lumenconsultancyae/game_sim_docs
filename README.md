@@ -37,20 +37,20 @@ game_sim_docs/
 
 - **[Argiei & GameSimulationPlatform Architecture](docs/argiei_and_platform_architecture.md)**
   - Argiei Platform API & MCP tools (`argiei-platform`), project/workspace management, repository scaffolding, and Kanban lifecycle.
-  - `GameSimulationPlatform` layered architecture: FastAPI backend (`src/ui/`), multiprocessing worker pool, Swiss matchmaking & Elo/Dominance engine, React + Vite UI (`src/ui/web/`), and arena game engines (`exotec`, `back_track_king`, `fall_challenge_2020`, ` winter_challenge_2026_exotec`).
+  - `GameSimulationPlatform` layered architecture: FastAPI backend (`src/ui/`), CodinGame REST API v1 client (`src/ui/codingame_client.py`), single-file/dual-seat bot bundler (`src/ui/bot_bundler.py`), multiprocessing worker pool, Swiss matchmaking & Elo/Dominance engine, React + Vite UI (`ui/`), and all 5 registered arena game engines (`exotec`, `ghost_in_the_cell`, `troll_farm`, `back_track_king`, `tryangle_catch` with bots `bot_v1`–`bot_v26`).
 - **[BDD E2E & Unit Testing Guide](docs/bdd_and_unit_testing_guide.md)**
   - Strict separation of concerns between browser-level BDD E2E journeys (`game_sim_docs/tests/bdd/`) and in-process unit tests (`GameSimulationPlatform/tests/`).
-  - Step-by-step instructions for running both suites locally or in Docker.
+  - Step-by-step instructions for running both suites locally or in Docker (`docker compose up -d`).
 
 ---
 
 ## Running the BDD E2E Test Suite
 
-Ensure the `GameSimulationPlatform` backend (`http://localhost:8000`) and frontend (`http://localhost:5173`) are running, then execute:
+Ensure the `GameSimulationPlatform` stack is running (via `docker compose up -d` on `:8002`/`:5174` or local dev servers on `:8000`/`:5173`), then execute:
 
 ```bash
-GSP_WEB_URL=http://localhost:5173 \
-GSP_API_URL=http://localhost:8000 \
-GSP_HEADLESS=true \
+E2E_WEB_BASE_URL=http://127.0.0.1:5174 \
+E2E_API_BASE_URL=http://127.0.0.1:8002 \
+E2E_HEADLESS=true \
 behave tests/bdd/features --no-capture
 ```

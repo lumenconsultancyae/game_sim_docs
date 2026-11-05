@@ -23,20 +23,21 @@ Scenarios are written in business-level domain language without CSS selectors, X
    - *Display available game arenas on the landing page*
    - *Enter an arena from the landing page and switch between arenas and views*
 2. **`live_simulation.feature`**:
-   - *Configure participating bots in the Bot Configuration Drawer*
-   - *Run a live simulation between two bots and step through frames*
+   - *Configure Bot A and Bot B with a deterministic seed and run a live match*
+   - *Replay an official baseline match log and navigate turn history*
+   - *Configure BotV26 and BotV25 in TryAngle-Catch and run a deterministic live match*
 3. **`tournament_management.feature`**:
-   - *Select bots, run a tournament, and inspect populated leaderboard metrics*
-   - *Cancel and confirm resetting tournament statistics*
+   - *Configure participating bots in the Tournament dashboard using selection controls*
+   - *Inspect tournament standings and execute the Reset Stats confirmation flow*
 
 ### Layer 2: Page Object Model (`tests/bdd/pages/`)
 All DOM locators and explicit `WebDriverWait` synchronization live inside Page Objects inheriting from `BasePage`:
 - **`BasePage` (`tests/bdd/pages/base_page.py`)**:
   - Retry-aware explicit waits (`find_visible`, `find_clickable`, `click`, `wait_for_url_contains`).
-  - `assert_no_dom_text_anomalies()`: Scans `document.body.innerText` for rendering defects (`NaN`, `undefined`, `[object Object]`).
+  - `get_dom_anomalies()`: Scans `document.body.innerText` for rendering defects (`NaN`, `undefined`, `[object Object]`).
   - Idempotent teardown helpers (`stop_and_reset_tournament_via_api`) for clean scenario isolation.
 - **`ArenaSelectionPage` (`tests/bdd/pages/arena_selection_page.py`)**: Landing page game cards, arena header breadcrumb, game dropdown switcher, and `Live View` / `Tournament` mode toggles.
-- **`LiveSimulationPage` (`tests/bdd/pages/live_simulation_page.py`)**: Bot Configuration Drawer (`Configure Bots`), bot card toggles, `Run Simulation` button, playback controls, frame counter (`Frame X / Y`), and viewport canvas dimension verification.
+- **`LiveSimulationPage` (`tests/bdd/pages/live_simulation_page.py`)**: Bot Configuration Drawer (`Configure Bots`), bot card toggles, `Run Simulation` button, playback controls, turn counter (`Turn X / Y`), and viewport canvas dimension verification.
 - **`TournamentPage` (`tests/bdd/pages/tournament_page.py`)**: Participating bot pills (`v1`, `v2`, ...), `Select All` / `Reset` selection actions, `Run Tournament` / `Stop Tournament`, leaderboard table rows, and the 2-step `Reset Stats` $\rightarrow$ `Yes, Reset` / `Cancel` confirmation flow.
 
 ### Layer 3: Step Definitions & Fail-Fast Lifecycle Hooks (`tests/bdd/features/`)
@@ -50,18 +51,18 @@ All DOM locators and explicit `WebDriverWait` synchronization live inside Page O
 ## 3. Running the Test Suites
 
 ### 3.1 Running BDD E2E Tests (`game_sim_docs`)
-With the `GameSimulationPlatform` API (`:8000`) and Web UI (`:5173`) running:
+With the `GameSimulationPlatform` API (`:8002` or `:8000`) and Web UI (`:5174` or `:5173`) running via `docker compose up -d`:
 
 ```bash
-cd /workspace/projects/codingame_competition_c186e7/default/game_sim_docs
-GSP_WEB_URL=http://localhost:5173 \
-GSP_API_URL=http://localhost:8000 \
-GSP_HEADLESS=true \
+cd game_sim_docs
+E2E_WEB_BASE_URL=http://127.0.0.1:5174 \
+E2E_API_BASE_URL=http://127.0.0.1:8002 \
+E2E_HEADLESS=true \
 behave tests/bdd/features --no-capture
 ```
 
-### 3.2 Running In-Process Unit Tests (`GameSimulationPlatform`)
+### 3.2 Running In-Process Unit & Integration Tests (`GameSimulationPlatform`)
 ```bash
-cd /workspace/projects/codingame_competition_c186e7/default/GameSimulationPlatform
-pytest -v tests/test_*.py tests/utils/test_*.py
+cd GameSimulationPlatform
+pytest -v tests/
 ```
