@@ -25,7 +25,7 @@ Scenarios are written in business-level domain language without CSS selectors, X
 2. **`live_simulation.feature`**:
    - *Configure Bot A and Bot B with a deterministic seed and run a live match*
    - *Replay an official baseline match log and navigate turn history*
-   - *Configure BotV26 and BotV25 in TryAngle-Catch and run a deterministic live match*
+   - *Configure BotV29 and BotV28 in TryAngle-Catch and run a deterministic live match*
 3. **`tournament_management.feature`**:
    - *Configure participating bots in the Tournament dashboard using selection controls*
    - *Inspect tournament standings and execute the Reset Stats confirmation flow*

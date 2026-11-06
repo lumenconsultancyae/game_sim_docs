@@ -62,7 +62,7 @@ flowchart LR
         GITC["Ghost in the Cell (ghost_in_the_cell)"]
         TF["Troll Farm (troll_farm)"]
         BTK["Back Track King (back_track_king)"]
-        TAC["TryAngle-Catch (tryangle_catch: bot_v1..bot_v26)"]
+        TAC["TryAngle-Catch (tryangle_catch: bot_v1..bot_v29)"]
     end
 
     Landing --> MainAPI
@@ -90,7 +90,7 @@ flowchart LR
 1. **FastAPI Control Plane (`src/ui/main.py`)**:
    - `GET /`: Lists registered games (`exotec`, `ghost_in_the_cell`, `troll_farm`, `back_track_king`, `tryangle_catch`) and league tiers (`Legend`, `Gold`, `Silver`, `Bronze`, `Wood`).
    - `GET /metadata?game_id=<id>`: Merges common leaderboard columns (`Rank`, `League`, `Bot Name`, `Dominance`, `Rating (Elo)`, `Perf`, `Win%`, `Loss%`, `Draw%`, `T1 Time`, `Avg Time`, `W-D-L`, `Total #`) with game-specific telemetry columns (e.g., `K% (F|K|S)` and `Bat%`).
-   - `GET /bots?game_id=<id>`: Dynamically discovers bot classes under `src/games/<game_id>/bots/`, deduplicates backward-compatible class aliases by canonical `filename`, and formats versioned display labels (`v1`–`v26` for `tryangle_catch`, `v1`–`v52` for `back_track_king`).
+   - `GET /bots?game_id=<id>`: Dynamically discovers bot classes under `src/games/<game_id>/bots/`, deduplicates backward-compatible class aliases by canonical `filename`, and formats versioned display labels (`v1`–`v29` for `tryangle_catch`, `v1`–`v52` for `back_track_king`).
    - `POST /run-simulation`: Runs a high-priority interactive match (or parses a `.e2e` replay log) and returns turn-by-turn state history for the visualizer.
    - `POST /batch-simulation`, `GET /tournament-stats`, `POST /stop-tournament`, `POST /reset-tournament`: Controls background Swiss tournament sessions and streams live Elo/Dominance standings.
    - `GET /bundle/{bot_filename}`: Bundles multi-file Python bot code and its transitive `src.*` imports into a single standalone submission script via `src/ui/bot_bundler.py` (`bundle_specific` and `bundle_match`), applying AST docstring/annotation stripping (preserving class-body `@dataclass` field annotations), Python 3.12+ f-string-safe token whitespace minification (`> 95,000` chars), and `zlib`+`base85` fallback (`> 99,000` chars) to stay strictly within CodinGame's `100,000`-character limit.

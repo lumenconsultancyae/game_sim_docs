@@ -37,7 +37,7 @@ game_sim_docs/
 
 - **[Argiei & GameSimulationPlatform Architecture](docs/argiei_and_platform_architecture.md)**
   - Argiei Platform API & MCP tools (`argiei-platform`), project/workspace management, repository scaffolding, and Kanban lifecycle.
-  - `GameSimulationPlatform` layered architecture: FastAPI backend (`src/ui/`), CodinGame REST API v1 client (`src/ui/codingame_client.py`), single-file/dual-seat bot bundler (`src/ui/bot_bundler.py`), multiprocessing worker pool, Swiss matchmaking & Elo/Dominance engine, React + Vite UI (`ui/`), and all 5 registered arena game engines (`exotec`, `ghost_in_the_cell`, `troll_farm`, `back_track_king`, `tryangle_catch` with bots `bot_v1`–`bot_v26`).
+  - `GameSimulationPlatform` layered architecture: FastAPI backend (`src/ui/`), CodinGame REST API v1 client (`src/ui/codingame_client.py`), single-file/dual-seat bot bundler (`src/ui/bot_bundler.py`), multiprocessing worker pool, Swiss matchmaking & Elo/Dominance engine, React + Vite UI (`ui/`), and all 5 registered arena game engines (`exotec`, `ghost_in_the_cell`, `troll_farm`, `back_track_king`, `tryangle_catch` with bots `bot_v1`–`bot_v29`).
 - **[BDD E2E & Unit Testing Guide](docs/bdd_and_unit_testing_guide.md)**
   - Strict separation of concerns between browser-level BDD E2E journeys (`game_sim_docs/tests/bdd/`) and in-process unit tests (`GameSimulationPlatform/tests/`).
   - Step-by-step instructions for running both suites locally or in Docker (`docker compose up -d`).

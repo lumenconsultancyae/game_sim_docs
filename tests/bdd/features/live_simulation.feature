@@ -18,9 +18,9 @@ Feature: Live Bot Simulation and Baseline Match Replay
     When I jump to the final turn of the match replay
     Then the playback turn counter is positioned at the final turn
 
-  Scenario: Configure BotV26 and BotV25 in TryAngle-Catch and run a deterministic live match
+  Scenario: Configure BotV29 and BotV28 in TryAngle-Catch and run a deterministic live match
     Given I navigate to the "tryangle_catch" arena in Live View
-    When I select bot "v26" for slot "A" and bot "v25" for slot "B" from the bot drawer
+    When I select bot "v29" for slot "A" and bot "v28" for slot "B" from the bot drawer
     And I enter the simulation seed "42" and start the live simulation
     Then the viewport canvas renders the match and playback loads multiple turns
     And I can step through turns and expand the execution logs without DOM anomalies
