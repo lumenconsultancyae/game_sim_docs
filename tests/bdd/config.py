@@ -31,8 +31,16 @@ def _resolve_screenshot_dir() -> str:
     return os.path.expanduser("~/.gemini/antigravity/brain/e2e_screenshots")
 
 
-WEB_URL_CANDIDATES: tuple[str, ...] = ("http://127.0.0.1:5173", "http://127.0.0.1:5174")
-API_URL_CANDIDATES: tuple[str, ...] = ("http://127.0.0.1:8000", "http://127.0.0.1:8002")
+WEB_URL_CANDIDATES: tuple[str, ...] = (
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:5174",
+    "http://172.22.0.1:5174",
+)
+API_URL_CANDIDATES: tuple[str, ...] = (
+    "http://127.0.0.1:8000",
+    "http://127.0.0.1:8002",
+    "http://172.22.0.1:8002",
+)
 
 WEB_BASE_URL: str = _resolve_url(("E2E_WEB_BASE_URL", "GSP_WEB_URL"), WEB_URL_CANDIDATES[0])
 API_BASE_URL: str = _resolve_url(("E2E_API_BASE_URL", "GSP_API_URL"), API_URL_CANDIDATES[0])

@@ -18,6 +18,7 @@ from tests.bdd import config
 from tests.bdd.pages.arena_selection_page import ArenaSelectionPage
 from tests.bdd.pages.live_simulation_page import LiveSimulationPage
 from tests.bdd.pages.tournament_page import TournamentPage
+from tests.bdd.pages.ux_redesign_page import UxRedesignPage
 
 
 def _probe_candidate_url(current_url: str, env_keys: tuple[str, ...], candidates: tuple[str, ...]) -> str:
@@ -92,6 +93,7 @@ def before_all(context) -> None:
     context.arena_page = ArenaSelectionPage(context.driver)
     context.live_page = LiveSimulationPage(context.driver)
     context.tournament_page = TournamentPage(context.driver)
+    context.ux_page = UxRedesignPage(context.driver)
     context.driver.get(config.WEB_BASE_URL)
 
 
@@ -101,10 +103,11 @@ def before_scenario(context, scenario) -> None:
     context.console_errors = []
     # Drain any stale logs before scenario starts
     _collect_severe_console_errors(context.driver)
+    context.ux_page.set_viewport(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
     if not context.driver.current_url.startswith(config.WEB_BASE_URL):
         context.driver.get(config.WEB_BASE_URL)
     context.driver.execute_script(
-        "window.localStorage.clear(); if (window.location.hash) { window.location.hash = ''; }"
+        "window.localStorage.clear(); window.history.replaceState({}, '', '/'); document.documentElement.setAttribute('dir', 'ltr');"
     )
 
 
