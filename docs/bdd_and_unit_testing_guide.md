@@ -8,8 +8,9 @@ This document defines the testing architecture across `game_sim_docs` (browser-b
 
 | Test Suite | Location | Runner | Responsibility & Use Cases Covered |
 | :--- | :--- | :--- | :--- |
-| **BDD E2E Tests** | `game_sim_docs/tests/bdd/` | `behave` + Selenium Headless Chromium | **User-visible browser workflows**: SPA hash routing (`#/` $\leftrightarrow$ `#/<game_id>`), game switcher dropdowns, bot configuration drawer selection, live match simulation & timeline stepping, tournament execution, leaderboard population, 2-step reset confirmation, DOM text integrity (`NaN`/`undefined` checks), and zero `SEVERE` browser console errors. |
-| **In-Process Unit Tests** | `GameSimulationPlatform/tests/` | `pytest` | **Algorithmic, validation & edge-case matrices**: FastAPI route `400`/`404` error guardrails, corrupted `.e2e` replay rejection, bot class alias deduplication, `PrioritySemaphore` preemption & cancellation cleanup, `TournamentManager` win/loss/draw reason matrices, largest-remainder `100%` sub-percentage distribution (`distribute_sub_pcts`), Elo/Dominance calculations, Swiss pairing bye/rematch penalties, and bot pathfinding (`A*`, heatmaps, centrality). |
+| **BDD E2E Tests** | `game_sim_docs/tests/bdd/` | `behave` + Selenium Headless Chromium | **User-visible browser workflows (`4` features, `10` scenarios, `64` steps)**: SPA routing (`#/` $\leftrightarrow$ `#/<game_id>`), URL search-param synchronization (`?tab=`, `?q=`, `?pageSize=`), game switcher dropdowns, bot configuration drawer selection, live match simulation & timeline stepping, tournament execution, paginated leaderboard filtering & `Clear Filters`, accessible `role="alertdialog"` reset confirmation modal, non-blocking toast notification with `Undo Reset`, progressive disclosure & inline `role="alert"` form validation in CodinGame API view, `Cmd/Ctrl + K` command palette, responsive off-canvas navigation drawer (`1440px`, `768px`, `390px`), zero horizontal overflow, DOM text integrity (`NaN`/`undefined` checks), and zero `SEVERE` browser console errors. |
+| **Frontend Unit & Architectural Gate Tests** | `GameSimulationPlatform/ui/src/` | `vitest` + React Testing Library | **Frontend components, hooks, schemas & static gates (`6` suites, `28` tests)**: `ToastProvider` (with Undo & XSS sanitization), `ConfirmModal` (`role="alertdialog"`), `PaginationBar`, `OffCanvasNavDrawer`, `CommandPalette`, `ErrorBoundary`, Zod schemas (`codingameTokenSchema`, `codingameDeploySchema`, `simulationFormSchema`), TanStack Query key factory & optimistic rollback, URL search-param sync, static check for `0` `alert`/`confirm`/`prompt` calls, `0` hardcoded hex colors in `.tsx`, all `var(--...)` custom properties defined in `tokens.css`, and `< 500` lines per file across `ui/src/`. |
+| **Backend In-Process Unit Tests** | `GameSimulationPlatform/tests/` | `pytest` | **Algorithmic, validation & edge-case matrices (`615` tests)**: FastAPI route `400`/`404` error guardrails, corrupted `.e2e` replay rejection, bot class alias deduplication, `PrioritySemaphore` preemption & cancellation cleanup, `TournamentManager` win/loss/draw reason matrices, largest-remainder `100%` sub-percentage distribution (`distribute_sub_pcts`), Elo/Dominance calculations, Swiss pairing bye/rematch penalties, and bot pathfinding (`A*`, heatmaps, centrality). |
 
 ---
 
@@ -29,6 +30,10 @@ Scenarios are written in business-level domain language without CSS selectors, X
 3. **`tournament_management.feature`**:
    - *Configure participating bots in the Tournament dashboard using selection controls*
    - *Inspect tournament standings and execute the Reset Stats confirmation flow*
+4. **`ux_redesign.feature`**:
+   - *Validate inline seed errors in Live View and progressive disclosure in CodinGame API*
+   - *Synchronize tournament table search and pagination with URL parameters and undo reset via toast*
+   - *Verify responsive off-canvas navigation drawer and zero horizontal overflow across viewports*
 
 ### Layer 2: Page Object Model (`tests/bdd/pages/`)
 All DOM locators and explicit `WebDriverWait` synchronization live inside Page Objects inheriting from `BasePage`:
